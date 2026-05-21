@@ -25,6 +25,7 @@ dependencies = [
     "click>=8.0",
     "cryptography>=41.0",
     "python-dotenv>=1.0",
+    "eth_account>=0.10",
 ]
 
 [project.optional-dependencies]

@@ -23,15 +23,30 @@ Quickstart::
     asyncio.run(main())
 """
 
-# Load .env automatically if python-dotenv is available
+# Load .env automatically if python-dotenv is available.
+# Searches from the current working directory up to the filesystem root,
+# so it works regardless of where the script is executed from.
 try:
     from dotenv import load_dotenv
     import os as _os
-    _cwd = _os.getcwd()
+    from pathlib import Path as _Path
+
+    _start = _Path(_os.getcwd())
+    _loaded = False
     for _dotenv in [".env", ".env.local"]:
-        _path = _os.path.join(_cwd, _dotenv)
-        if _os.path.exists(_path):
-            load_dotenv(_path, override=False)
+        _path = _start / _dotenv
+        if _path.exists():
+            load_dotenv(str(_path), override=False)
+            _loaded = True
+            break
+        # Walk up the directory tree
+        for _parent in _start.parents:
+            _path = _parent / _dotenv
+            if _path.exists():
+                load_dotenv(str(_path), override=False)
+                _loaded = True
+                break
+        if _loaded:
             break
 except ImportError:
     pass  # python-dotenv not installed — user must manage env vars manually
