@@ -65,21 +65,21 @@ if [ "$NODE_OK" = true ]; then
     npm install
 fi
 
-# 6. Create .env template
+# 6. Copy .env.example to .env
 if [ ! -f .env ] && [ ! -f .env.local ]; then
     echo ""
-    echo "Creating .env template..."
-    cat > .env << 'EOF'
-# Blindference Agent Configuration
-# Arbitrum Sepolia RPC endpoint — get a free key at https://www.alchemy.com/
+    if [ -f .env.example ]; then
+        echo "Copying .env.example to .env..."
+        cp .env.example .env
+    else
+        echo "Creating .env template..."
+        cat > .env << 'EOF'
+# Blindference Agent SDK
 BLF_COFHE_RPC=https://arb-sepolia.g.alchemy.com/v2/YOUR_KEY
-
-# Generate a fresh wallet for the agent, or use an existing one
 BLF_PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
-
-# ICL endpoint (default is production)
 BLF_ICL_URL=https://icl.blindference.xyz
 EOF
+    fi
     echo ".env created — edit it with your keys"
 else
     echo ".env already exists"

@@ -38,17 +38,24 @@ def init(dir: str) -> None:
 
     created_any = False
 
-    # Write .env template
+    # Write .env from package template
     env_path = _os.path.join(target, ".env")
     if not _os.path.exists(env_path):
-        with open(env_path, "w") as f:
-            f.write(
-                "# Blindference Agent Configuration\n"
-                "BLF_ICL_URL=https://icl.blindference.xyz\n"
-                "BLF_COFHE_RPC=https://arb-sepolia.g.alchemy.com/v2/YOUR_KEY\n"
-                "BLF_PRIVATE_KEY=0x...\n"
-                "BLF_COFHE_BRIDGE_PATH=./cofhe_bridge.mjs\n"
-            )
+        # Copy .env.example shipped with the package
+        pkg_dir = _os.path.dirname(_os.path.abspath(__file__))
+        example = _os.path.join(pkg_dir, "..", "..", "..", ".env.example")
+        if _os.path.exists(example):
+            import shutil
+            shutil.copy(example, env_path)
+        else:
+            # Fallback: write minimal template
+            with open(env_path, "w") as f:
+                f.write(
+                    "# Blindference Agent SDK\n"
+                    "BLF_COFHE_RPC=https://arb-sepolia.g.alchemy.com/v2/YOUR_KEY\n"
+                    "BLF_PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE\n"
+                    "BLF_ICL_URL=https://icl.blindference.xyz\n"
+                )
         click.echo(f"  Created {env_path}")
         created_any = True
     else:

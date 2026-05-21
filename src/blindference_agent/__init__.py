@@ -1,5 +1,8 @@
 """Blindference Agent SDK — build confidential AI agents on the Blindference network.
 
+Environment variables are auto-loaded from ``.env`` (via ``python-dotenv``) when
+this package is imported.
+
 Quickstart::
 
     import asyncio
@@ -19,6 +22,19 @@ Quickstart::
 
     asyncio.run(main())
 """
+
+# Load .env automatically if python-dotenv is available
+try:
+    from dotenv import load_dotenv
+    import os as _os
+    _cwd = _os.getcwd()
+    for _dotenv in [".env", ".env.local"]:
+        _path = _os.path.join(_cwd, _dotenv)
+        if _os.path.exists(_path):
+            load_dotenv(_path, override=False)
+            break
+except ImportError:
+    pass  # python-dotenv not installed — user must manage env vars manually
 
 from blindference_agent.core import BlindferenceAgent
 from blindference_agent.types import InferenceResult, InferenceStatus, InferenceRequest

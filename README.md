@@ -20,11 +20,11 @@ pip install -e ".[dev,langchain]"
 npm install
 ```
 
-Create a `.env` file:
+Create a `.env` file from the provided example:
 
 ```bash
-cp .env .env.local
-# Edit .env.local with your keys
+cp .env.example .env
+# Edit .env with your keys
 ```
 
 Required environment variables:
@@ -34,6 +34,8 @@ Required environment variables:
 | `BLF_COFHE_RPC` | Arbitrum Sepolia RPC endpoint | [Alchemy](https://www.alchemy.com/) |
 | `BLF_PRIVATE_KEY` | Agent wallet private key | Generate fresh or use existing |
 | `BLF_ICL_URL` | Inference Coordination Layer | `https://icl.blindference.xyz` |
+
+The SDK auto-loads `.env` and `.env.local` via `python-dotenv` when imported — no manual `load_dotenv()` call needed.
 
 ### Run the Notebook
 
