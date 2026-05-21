@@ -1,4 +1,7 @@
-"""Interactive chat loop with the Blindference network."""
+"""Interactive chat session with the Blindference network.
+
+A simple REPL that submits each user message as a confidential inference request
+and displays the result with quorum metadata."""
 
 import asyncio
 import os
@@ -7,14 +10,15 @@ from blindference_agent import BlindferenceAgent
 
 
 async def chat_loop():
-    """Simple REPL chat with the Blindference Agent."""
+    """Interactive chat session."""
     agent = BlindferenceAgent(
         icl_url=os.environ.get("BLF_ICL_URL", "https://icl.blindference.xyz"),
-        mock=True,  # Use mock=True for quick demos; set to False for real encryption
+        cofhe_rpc=os.environ.get("BLF_COFHE_RPC", ""),
+        private_key=os.environ.get("BLF_PRIVATE_KEY", ""),
     )
 
-    print("🤖 Blindference Agent Chat")
-    print("Type your question or 'exit' to quit")
+    print("Blindference Agent — Interactive Session")
+    print("Type 'exit' to quit")
     print("=" * 60)
 
     history = []
@@ -25,7 +29,7 @@ async def chat_loop():
             break
 
         history.append({"role": "user", "content": user_input})
-        print("  Thinking...")
+        print("  Processing...")
 
         result = await agent.inference(
             prompt=user_input,
@@ -37,7 +41,7 @@ async def chat_loop():
         print(f"\nAgent: {result.text}")
         print(f"  [Leader: {result.leader_address[:20]}..., Verifiers: {len(result.verifier_addresses)}]")
 
-    print("\nGoodbye! 👋")
+    print("\nSession ended.")
     await agent.close()
 
 

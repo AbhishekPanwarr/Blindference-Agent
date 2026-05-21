@@ -1,4 +1,6 @@
-"""Batch inference example — submit multiple prompts concurrently."""
+"""Batch inference example — submit multiple prompts concurrently.
+
+Each prompt runs through its own quorum consensus pipeline."""
 
 import asyncio
 import os
@@ -10,7 +12,8 @@ async def batch_inference(prompts: list[str], model_id: str = "groq:llama-3.3-70
     """Submit multiple prompts concurrently and collect all results."""
     agent = BlindferenceAgent(
         icl_url=os.environ.get("BLF_ICL_URL", "https://icl.blindference.xyz"),
-        mock=True,  # Use mock=True for quick demos; set to False for real encryption
+        cofhe_rpc=os.environ.get("BLF_COFHE_RPC", ""),
+        private_key=os.environ.get("BLF_PRIVATE_KEY", ""),
     )
 
     print(f"Submitting {len(prompts)} prompts concurrently...\n")

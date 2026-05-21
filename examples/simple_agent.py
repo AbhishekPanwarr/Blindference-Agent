@@ -1,4 +1,7 @@
-"""Simple one-shot confidential inference example."""
+"""Simple one-shot confidential inference example.
+
+This example demonstrates the simplest possible usage of the Blindference Agent SDK:
+encrypt a prompt, submit to the quorum, wait for consensus, and print the result."""
 
 import asyncio
 import os

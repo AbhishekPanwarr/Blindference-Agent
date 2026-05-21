@@ -1,7 +1,7 @@
-"""Streaming quorum progress example.
+"""Streaming execution trace example.
 
-Shows live execution trace: encryption → quorum assignment → leader run
-→ verifier replay → on-chain commitment → local decrypt."""
+Demonstrates live monitoring of quorum execution: encryption, assignment,
+leader inference, verifier replay, on-chain commitment, and result decryption."""
 
 import asyncio
 import os
@@ -24,26 +24,25 @@ async def main():
     )
 
     print(f"Request submitted: {request.request_id}")
-    print("Streaming quorum progress ...\n")
+    print("Monitoring quorum execution...\n")
 
     async for status in agent.stream_status(request.request_id, interval=2.0):
         step_emoji = {
-            "quorum": "📋",
-            "leader": "🧠",
-            "verifier": "✅",
-            "onchain": "🔗",
-            "decrypt": "🔓",
-            "error": "❌",
-        }.get(status.step, "⏳")
+            "quorum": "Building Quorum",
+            "leader": "Leader Inference",
+            "verifier": "Verifier Replay",
+            "onchain": "On-Chain Commit",
+            "decrypt": "Decrypt Result",
+            "error": "Execution Error",
+        }.get(status.step, status.step)
 
         print(
-            f"{step_emoji} {status.status:12} | "
-            f"Step: {status.step:10} | "
+            f"[{status.status:12}] {step_emoji:20} | "
             f"Verifiers: {status.confirm_count}/{status.verifier_count}"
         )
 
         if status.status == "ACCEPTED":
-            print("\n🔓 Decrypting result ...")
+            print("\nQuorum consensus reached. Decrypting result...")
             result = await agent._decrypt_result(status, request.model_id)
             print(f"\n{'='*60}")
             print(result.text)
@@ -51,8 +50,10 @@ async def main():
             break
 
         if status.status in ("REJECTED", "DISPUTED"):
-            print(f"\n❌ Inference failed: {status.status}")
+            print(f"\nInference failed: {status.status}")
             break
+
+    await agent.close()
 
 
 if __name__ == "__main__":

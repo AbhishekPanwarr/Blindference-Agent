@@ -1,8 +1,8 @@
-"""Risk scoring agent — demonstrates non-text inference mode.
+"""Confidential risk scoring example.
 
-This example shows how to use Blindference for confidential risk scoring
-(loan risk, credit assessment, etc.) where the input features are sensitive
-numeric data rather than text prompts."""
+Demonstrates submitting sensitive numeric features (loan application data)
+through the encrypted inference pipeline. The model returns a risk score
+without the input features ever being exposed in plaintext."""
 
 import asyncio
 import os
@@ -11,10 +11,11 @@ from blindference_agent import BlindferenceAgent
 
 
 async def risk_scoring_example():
-    """Submit a confidential risk scoring request with numeric features."""
+    """Submit a confidential risk scoring request."""
     agent = BlindferenceAgent(
         icl_url=os.environ.get("BLF_ICL_URL", "https://icl.blindference.xyz"),
-        mock=True,  # Use mock=True for quick demos; set to False for real encryption
+        cofhe_rpc=os.environ.get("BLF_COFHE_RPC", ""),
+        private_key=os.environ.get("BLF_PRIVATE_KEY", ""),
     )
 
     # Sensitive loan application features
@@ -26,7 +27,6 @@ async def risk_scoring_example():
         "monthly_income": 8000,
     }
 
-    # Convert features to a prompt (in real mode, these would be encrypted)
     prompt = (
         f"Risk assessment: credit_score={features['credit_score']}, "
         f"loan_amount={features['loan_amount_usd']}, "
@@ -36,7 +36,7 @@ async def risk_scoring_example():
         "Return only a risk score from 0 (low risk) to 100 (high risk)."
     )
 
-    print("🔒 Confidential Risk Scoring")
+    print("Confidential Risk Scoring")
     print("=" * 60)
     print(f"Features: {features}")
     print()
