@@ -289,6 +289,7 @@ class BlindferenceAgent:
         import aiohttp
         blob = b""
         gateways = [
+            f"{self.icl.base}/ipfs/{status.output_cid}",
             f"https://gateway.pinata.cloud/ipfs/{status.output_cid}",
             f"https://cloudflare-ipfs.com/ipfs/{status.output_cid}",
         ]
