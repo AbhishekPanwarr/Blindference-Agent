@@ -1,0 +1,10 @@
+{
+  "name": "blindference-agent-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoFHE bridge dependencies for Blindference Agent SDK",
+  "dependencies": {
+    "@cofhe/sdk": "^0.5.1",
+    "viem": "^2.0.0"
+  }
+}

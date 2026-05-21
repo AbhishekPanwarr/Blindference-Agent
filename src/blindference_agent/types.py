@@ -11,7 +11,7 @@ class QuorumNode:
     """A node selected for the inference quorum."""
 
     address: str
-    tier: int
+    tier: int = 0
     reputation_score: int = 0
 
 

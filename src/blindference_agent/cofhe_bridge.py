@@ -41,9 +41,10 @@ class CoFHEBridge:
         if bridge_script_path:
             self._script = bridge_script_path
         else:
-            # Look in package data, then in node_modules, then cwd
+            # Look in package scripts dir, then node_modules, then cwd
             candidates = [
-                Path(__file__).parent / "cofhe_bridge.mjs",
+                Path(__file__).parent / "scripts" / "cofhe_bridge.mjs",
+                Path(__file__).parent.parent.parent / "scripts" / "cofhe_bridge.mjs",
                 Path(__file__).parent.parent.parent / "node_modules" / "@cofhe" / "sdk" / "node" / "bridge.mjs",
                 Path.cwd() / "cofhe_bridge.mjs",
             ]

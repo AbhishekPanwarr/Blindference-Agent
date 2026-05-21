@@ -28,11 +28,11 @@ import asyncio
 from typing import Any, List, Optional
 
 try:
-    from langchain.llms.base import BaseLLM
-    from langchain.schema import Generation, LLMResult
+    from langchain_core.language_models.llms import BaseLLM
+    from langchain_core.outputs import Generation, LLMResult
 except ImportError:
     raise ImportError(
-        "langchain is required for BlindferenceLLM. "
+        "langchain-core is required for BlindferenceLLM. "
         "Install with: pip install blindference-agent[langchain]"
     )
 

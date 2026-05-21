@@ -55,29 +55,47 @@ class BlindferenceAgent:
     def __init__(
         self,
         icl_url: str,
-        cofhe_rpc: str,
-        private_key: str,
+        cofhe_rpc: str = "",
+        private_key: str = "",
         chain_id: int = 421614,
         cofhe_bridge_path: str | None = None,
+        mock: bool = False,
     ) -> None:
         self.icl = ICLClient(icl_url)
+        self.mock = mock
+        self._wallet_address = ""
+
+        if mock:
+            logger.warning(
+                "⚠️  MOCK MODE ENABLED — No encryption, no CoFHE bridge, no private key required. "
+                "All prompts are sent in plaintext. Use only for demos and testing."
+            )
+            self.cofhe = None  # type: ignore[assignment]
+            return
+
+        if not cofhe_rpc or not private_key:
+            raise ValueError(
+                "cofhe_rpc and private_key are required unless mock=True. "
+                "Set them or use mock=True for testing."
+            )
+
         self.cofhe = CoFHEBridge(
             rpc_url=cofhe_rpc,
             chain_id=chain_id,
             private_key=private_key,
             bridge_script_path=cofhe_bridge_path,
         )
-        self._wallet_address = ""
 
     async def _ensure_wallet(self) -> str:
-        """Start the bridge and retrieve the wallet address."""
+        """Derive the wallet address from the private key via eth_account."""
         if self._wallet_address:
             return self._wallet_address
-        await self.cofhe.start()
-        # The bridge prints the address in its ready message; we store it here
-        # For now, derive from private key (simplified)
-        # In production, the bridge should expose a "get_address" action
-        self._wallet_address = "0x" + os.urandom(20).hex()  # Placeholder
+        if self.mock:
+            self._wallet_address = "0x" + "0" * 40
+            return self._wallet_address
+        from eth_account import Account
+        acct = Account.from_key(self.cofhe.private_key)
+        self._wallet_address = acct.address
         return self._wallet_address
 
     # ------------------------------------------------------------------
@@ -154,15 +172,51 @@ class BlindferenceAgent:
         verifier_count: int = 2,
         min_tier: int = 0,
     ) -> InferenceRequest:
-        """Encrypt a prompt, get a quorum, store the key on-chain, and submit
-        to the ICL.
+        """Encrypt a prompt (or pack plaintext in mock mode), get a quorum,
+        store the key on-chain, and submit to the ICL.
 
         Returns immediately after submission — use :meth:`stream_status` or
         :meth:`inference` to track progress.
         """
+        wallet_address = await self._ensure_wallet()
+
+        if self.mock:
+            # Mock mode: skip CoFHE, skip encryption, upload plaintext
+            logger.info("Mock mode: skipping encryption and CoFHE bridge")
+            packed = prompt.encode("utf-8")
+            logger.info("Uploading prompt blob to IPFS ...")
+            prompt_cid = await self.icl.upload_blob(packed)
+            logger.info("Prompt CID: %s", prompt_cid)
+
+            quorum = await self.icl.quorum_preview(
+                model_id=model_id,
+                min_tier=min_tier,
+                verifier_count=verifier_count,
+            )
+            task_id = _generate_task_id(prompt, model_id)
+
+            request = await self.icl.submit_text(
+                developer_address=wallet_address,
+                task_id=task_id,
+                model_id=model_id,
+                prompt_cid=prompt_cid,
+                encrypted_prompt_key_high="0",
+                encrypted_prompt_key_low="0",
+                leader_address=quorum.leader.address,
+                verifier_addresses=[v.address for v in quorum.verifiers],
+                min_tier=min_tier,
+                verifier_count=verifier_count,
+                metadata={
+                    "model": model_id,
+                    "provider": model_id.split(":")[0],
+                    "mock": True,
+                },
+            )
+            logger.info("Request submitted (mock): %s", request.request_id)
+            return request
+
         # 1 — Start CoFHE bridge
         await self.cofhe.start()
-        wallet_address = await self._ensure_wallet()
 
         # 2 — Encrypt prompt with AES-GCM
         logger.info("Encrypting prompt ...")
@@ -226,24 +280,12 @@ class BlindferenceAgent:
     # ------------------------------------------------------------------
 
     async def _decrypt_result(self, status: InferenceStatus, model_id: str) -> InferenceResult:
-        """Download the encrypted output blob, decrypt the CoFHE output key,
-        and AES-decrypt the result.
-        """
-        if not status.output_cid or not status.encrypted_output_key_high or not status.encrypted_output_key_low:
-            raise RuntimeError("Result is missing output CID or encrypted keys")
+        """Download the output blob and decrypt (or return plaintext in mock mode)."""
+        if not status.output_cid:
+            raise RuntimeError("Result is missing output CID")
 
-        # 1 — Decrypt output key halves via CoFHE
-        logger.info("Decrypting output key via CoFHE ...")
-        high_val = await self.cofhe.decrypt_for_view(status.encrypted_output_key_high)
-        low_val = await self.cofhe.decrypt_for_view(status.encrypted_output_key_low)
-        output_key = merge_key(
-            high_val.to_bytes(16, "big"),
-            low_val.to_bytes(16, "big"),
-        )
-
-        # 2 — Download output blob from IPFS
+        # Download output blob from IPFS
         logger.info("Downloading output from IPFS (CID=%s) ...", status.output_cid)
-        # Simple HTTP gateway download
         import aiohttp
         blob = b""
         gateways = [
@@ -262,11 +304,40 @@ class BlindferenceAgent:
         if not blob:
             raise RuntimeError(f"Failed to download output from IPFS: {status.output_cid}")
 
-        # 3 — AES-decrypt
+        # Mock mode: return plaintext directly
+        if self.mock:
+            logger.info("Mock mode: returning plaintext directly")
+            plaintext = blob.decode("utf-8")
+            raw = await self.icl._get(f"/v1/inference/{status.request_id}")
+            quorum = raw.get("quorum", {})
+            return InferenceResult(
+                request_id=status.request_id,
+                task_id=raw.get("task_id", status.request_id),
+                text=plaintext,
+                model_id=model_id,
+                output_cid=status.output_cid,
+                leader_address=quorum.get("leader_address", ""),
+                verifier_addresses=quorum.get("verifier_addresses", []),
+                commitment_hash=status.commitment_hash or "",
+                result_commit_tx=status.result_commit_tx,
+                timestamps=raw.get("timestamps"),
+            )
+
+        # Real mode: decrypt output key halves via CoFHE, then AES-decrypt
+        if not status.encrypted_output_key_high or not status.encrypted_output_key_low:
+            raise RuntimeError("Result is missing encrypted output keys")
+
+        logger.info("Decrypting output key via CoFHE ...")
+        high_val = await self.cofhe.decrypt_for_view(status.encrypted_output_key_high)
+        low_val = await self.cofhe.decrypt_for_view(status.encrypted_output_key_low)
+        output_key = merge_key(
+            high_val.to_bytes(16, "big"),
+            low_val.to_bytes(16, "big"),
+        )
+
         logger.info("AES-decrypting result ...")
         plaintext = decrypt_output(blob, output_key)
 
-        # 4 — Fetch final metadata from ICL status
         raw = await self.icl._get(f"/v1/inference/{status.request_id}")
         quorum = raw.get("quorum", {})
 
@@ -285,7 +356,8 @@ class BlindferenceAgent:
 
     async def close(self) -> None:
         """Clean up resources (CoFHE bridge, ICL session)."""
-        await self.cofhe.stop()
+        if self.cofhe is not None:
+            await self.cofhe.stop()
         await self.icl.close()
 
     async def __aenter__(self) -> BlindferenceAgent:

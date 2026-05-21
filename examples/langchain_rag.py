@@ -11,7 +11,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import RetrievalQA
 
 # Import the Blindference LangChain integration
-from integrations.langchain import BlindferenceLLM
+from blindference_agent.integrations.langchain import BlindferenceLLM
 
 
 def main():

@@ -36,6 +36,8 @@ def init(dir: str) -> None:
     target = _os.path.abspath(dir)
     _os.makedirs(target, exist_ok=True)
 
+    created_any = False
+
     # Write .env template
     env_path = _os.path.join(target, ".env")
     if not _os.path.exists(env_path):
@@ -48,6 +50,9 @@ def init(dir: str) -> None:
                 "BLF_COFHE_BRIDGE_PATH=./cofhe_bridge.mjs\n"
             )
         click.echo(f"  Created {env_path}")
+        created_any = True
+    else:
+        click.echo(f"  Already exists: {env_path}")
 
     # Write agent.py template
     agent_path = _os.path.join(target, "agent.py")
@@ -65,13 +70,16 @@ def init(dir: str) -> None:
                 "    )\n"
                 "    result = await agent.inference(\n"
                 "        prompt='Explain quantum computing',\n"
-                "        model='groq:llama-3.3-70b-versatile',\n"
+                "        model_id='groq:llama-3.3-70b-versatile',\n"
                 "    )\n"
                 "    print(result.text)\n\n"
                 "if __name__ == '__main__':\n"
                 "    asyncio.run(main())\n"
             )
         click.echo(f"  Created {agent_path}")
+        created_any = True
+    else:
+        click.echo(f"  Already exists: {agent_path}")
 
     # Write requirements.txt
     req_path = _os.path.join(target, "requirements.txt")
@@ -79,8 +87,14 @@ def init(dir: str) -> None:
         with open(req_path, "w") as f:
             f.write("blindference-agent\n")
         click.echo(f"  Created {req_path}")
+        created_any = True
+    else:
+        click.echo(f"  Already exists: {req_path}")
 
-    click.echo(f"\nAgent project initialized in {target}")
+    if created_any:
+        click.echo(f"\nAgent project initialized in {target}")
+    else:
+        click.echo(f"\nAgent project already exists in {target}")
     click.echo("Next steps:")
     click.echo("  1. Edit .env with your API keys and private key")
     click.echo("  2. Run: blindference-agent test")
