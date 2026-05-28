@@ -51,10 +51,19 @@ def init(dir: str) -> None:
             # Fallback: write minimal template
             with open(env_path, "w") as f:
                 f.write(
-                    "# Blindference Agent SDK\n"
-                    "BLF_COFHE_RPC=https://arb-sepolia.g.alchemy.com/v2/YOUR_KEY\n"
-                    "BLF_PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE\n"
-                    "BLF_ICL_URL=https://icl.blindference.xyz\n"
+                    "# Blindference Agent SDK — Environment Variables\n"
+                    "# Copy this file to .env and fill in your values.\n"
+                    "# NEVER commit this file to git.\n\n"
+                    "# REQUIRED — Arbitrum Sepolia RPC (get key at https://www.alchemy.com/)\n"
+                    "BLF_COFHE_RPC=https://arb-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY_HERE\n\n"
+                    "# REQUIRED — Wallet private key (32-byte hex, 0x-prefixed, fresh wallet only)\n"
+                    "BLF_PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE\n\n"
+                    "# REQUIRED — Payment Service URL (where job payments are processed)\n"
+                    "BLF_PAYMENT_URL=https://payment.blindference.xyz\n\n"
+                    "# ICL endpoint (defaults to https://icl.blindference.xyz)\n"
+                    "# BLF_ICL_URL=https://icl.blindference.xyz\n\n"
+                    "# Pinata JWT for IPFS uploads (get at https://pinata.cloud/keys)\n"
+                    "# BLF_PINATA_JWT=YOUR_PINATA_JWT_HERE\n"
                 )
         click.echo(f"  Created {env_path}")
         created_any = True
