@@ -34,6 +34,12 @@ htmlcov/
 node_modules/
 package-lock.json
 
+# TypeScript SDK build artifacts
+js/dist/
+js/node_modules/
+js/package-lock.json
+*.tsbuildinfo
+
 # OS
 .DS_Store
 Thumbs.db

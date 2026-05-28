@@ -122,17 +122,94 @@ Mock mode bypasses all cryptography and submits prompts as plaintext. **Never us
 
 ---
 
+## TypeScript / Node.js SDK
+
+A first-class TypeScript SDK is available for Node.js agents, serverless functions, and browser-adjacent runtimes.
+
+### Install
+
+```bash
+npm install @blindference/agent-sdk
+```
+
+### Quickstart
+
+```typescript
+import { BlindferenceAgent } from '@blindference/agent-sdk'
+
+const agent = new BlindferenceAgent({
+  privateKey: process.env.BLINDFERENCE_PRIVATE_KEY,
+  paymentServiceUrl: 'http://localhost:8001',
+  rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+})
+
+const result = await agent.infer({
+  prompt: 'Explain zero-knowledge proofs in three sentences',
+  modelId: 'groq:llama-3.3-70b-versatile',
+})
+
+console.log(result.output)
+```
+
+### CLI
+
+```bash
+# One-shot inference
+npx @blindference/agent-sdk infer --prompt "What is 2+2?"
+
+# Credit balances
+npx @blindference/agent-sdk balance
+
+# Purchase a package
+npx @blindference/agent-sdk buy-package --id pro
+
+# Start local REST server
+npx @blindference/agent-sdk start --port 4000
+```
+
+### Local REST Server
+
+```bash
+npx @blindference/agent-sdk start --port 4000
+```
+
+Endpoints:
+- `POST /infer` — submit inference (`{ prompt, modelId?, currency?, insurance? }`)
+- `GET /status/:jobId` — job status
+- `GET /balance` — credit balances
+- `GET /health` — health check
+
+The TypeScript SDK uses `@cofhe/sdk/node` directly (no subprocess bridge) and bundles the CoFHE bridge script so Python SDK users can resolve it from the npm package.
+
+---
+
+## Python ↔ TypeScript Interop
+
+Python agents can delegate CoFHE operations to the TypeScript SDK when native Python CoFHE bindings are unavailable or when running in mixed-language environments.
+
+| Pattern | Approach | Example |
+|---------|----------|---------|
+| Subprocess CLI | `subprocess.run(["npx", "@blindference/agent-sdk", "infer", ...])` | [`ts_sdk_subprocess.py`](examples/ts_sdk_subprocess.py) |
+| REST Server | Start TS server, call via `aiohttp`/`requests` | [`ts_sdk_server.py`](examples/ts_sdk_server.py) |
+
+---
+
 ## Examples
 
-| Example | Description |
-|---------|-------------|
-| [`getting_started.ipynb`](examples/getting_started.ipynb) | Interactive Jupyter notebook: setup validation, inference, streaming, batch, chat |
-| [`simple_agent.py`](examples/simple_agent.py) | One-shot inference with result metadata |
-| [`streaming_agent.py`](examples/streaming_agent.py) | Live execution trace with quorum step tracking |
-| [`batch_inference.py`](examples/batch_inference.py) | Concurrent multi-prompt submission |
-| [`interactive_chat.py`](examples/interactive_chat.py) | REPL chat loop with conversation history |
-| [`risk_scoring_agent.py`](examples/risk_scoring_agent.py) | Confidential numeric feature inference (loan risk) |
-| [`langchain_rag.py`](examples/langchain_rag.py) | LangChain Retrieval-Augmented Generation integration |
+| Example | Language | Description |
+|---------|----------|-------------|
+| [`getting_started.ipynb`](examples/getting_started.ipynb) | Python | Interactive Jupyter notebook: setup validation, inference, streaming, batch, chat |
+| [`simple_agent.py`](examples/simple_agent.py) | Python | One-shot inference with result metadata |
+| [`streaming_agent.py`](examples/streaming_agent.py) | Python | Live execution trace with quorum step tracking |
+| [`batch_inference.py`](examples/batch_inference.py) | Python | Concurrent multi-prompt submission |
+| [`interactive_chat.py`](examples/interactive_chat.py) | Python | REPL chat loop with conversation history |
+| [`risk_scoring_agent.py`](examples/risk_scoring_agent.py) | Python | Confidential numeric feature inference (loan risk) |
+| [`langchain_rag.py`](examples/langchain_rag.py) | Python | LangChain Retrieval-Augmented Generation integration |
+| [`ts_sdk_subprocess.py`](examples/ts_sdk_subprocess.py) | Python | Call TypeScript SDK CLI from Python via subprocess |
+| [`ts_sdk_server.py`](examples/ts_sdk_server.py) | Python | Control TS SDK REST server from Python via HTTP |
+| [`multi_turn_chat_agent.py`](examples/multi_turn_chat_agent.py) | Python | Stateful multi-turn chat agent with rolling memory |
+| [`autonomous_research_agent.py`](examples/autonomous_research_agent.py) | Python | Decompose queries, parallel infer, synthesize reports |
+| [`tool_using_agent.py`](examples/tool_using_agent.py) | Python | Local tool execution + encrypted LLM reasoning |
 
 ---
 
