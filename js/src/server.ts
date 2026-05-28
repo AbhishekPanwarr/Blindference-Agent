@@ -78,7 +78,9 @@ export async function startServer(options: ServerOptions): Promise<void> {
   app.get('/status/:jobId', async (req: Request, res: Response) => {
     const { jobId } = req.params
     try {
-      const resp = await agent['paymentClient'].get(`/v1/jobs/${jobId}`)
+      // Use the agent's getBalance endpoint pattern or create a direct client
+      const axios = (await import('axios')).default
+      const resp = await axios.get(`${options.paymentServiceUrl}/v1/jobs/${jobId}`)
       res.json(resp.data)
     } catch (err: any) {
       res.status(500).json({ error: err.message || 'Failed to fetch status' })
@@ -87,7 +89,7 @@ export async function startServer(options: ServerOptions): Promise<void> {
 
   return new Promise((resolve) => {
     app.listen(options.port, () => {
-      console.log(`\n🚀 Blindference Agent Server running on http://localhost:${options.port}`)
+      console.log(`\nBlindference Agent Server running on port ${options.port}`)
       console.log(`   Endpoints:`)
       console.log(`     GET  /health           → Health check`)
       console.log(`     GET  /balance          → Credit balances`)

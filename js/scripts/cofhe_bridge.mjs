@@ -1,10 +1,19 @@
+#!/usr/bin/env node
+
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 
 installLocalStorageShim()
 
-const [{ createCofheClient, createCofheConfig }, { Encryptable, FheTypes }, { chains }, { PermitUtils }, { createPublicClient, createWalletClient, http }] = await Promise.all([
+const [
+  { createCofheClient, createCofheConfig },
+  { Encryptable, FheTypes },
+  { chains },
+  { PermitUtils },
+  viemModule,
+  viemAccountsModule,
+] = await Promise.all([
   import('@cofhe/sdk/node'),
   import('@cofhe/sdk'),
   import('@cofhe/sdk/chains'),
@@ -12,6 +21,9 @@ const [{ createCofheClient, createCofheConfig }, { Encryptable, FheTypes }, { ch
   import('viem'),
   import('viem/accounts'),
 ])
+
+const { createPublicClient, createWalletClient, http } = viemModule
+const { privateKeyToAccount } = viemAccountsModule
 
 function installLocalStorageShim() {
   if (globalThis.localStorage && typeof globalThis.localStorage.setItem === 'function') {

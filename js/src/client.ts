@@ -14,9 +14,9 @@ import { arbitrumSepolia } from 'viem/chains'
 
 export type InferenceClientConfig = {
   privateKey: string
-  iclBaseUrl?: string
-  paymentBaseUrl?: string
-  rpcUrl?: string
+  iclBaseUrl: string
+  paymentBaseUrl: string
+  rpcUrl: string
   chainId?: number
   pinataJwt?: string
 }
@@ -58,10 +58,21 @@ export class InferenceClient {
   private config: Required<InferenceClientConfig>
 
   constructor(config: InferenceClientConfig) {
+    // Validate required fields
+    if (!config.iclBaseUrl) {
+      throw new Error('iclBaseUrl is required. Set it to your ICL endpoint (e.g. https://icl.blindference.xyz)')
+    }
+    if (!config.paymentBaseUrl) {
+      throw new Error('paymentBaseUrl is required. Set it to your Payment Service endpoint')
+    }
+    if (!config.rpcUrl) {
+      throw new Error('rpcUrl is required. Set it to your Arbitrum Sepolia RPC endpoint')
+    }
+    if (!config.privateKey) {
+      throw new Error('privateKey is required')
+    }
+
     this.config = {
-      iclBaseUrl: 'http://127.0.0.1:8000',
-      paymentBaseUrl: 'http://127.0.0.1:8001',
-      rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
       chainId: 421614,
       pinataJwt: '',
       ...config,
@@ -147,30 +158,6 @@ export class InferenceClient {
   }
 
   // ── Inference ───────────────────────────────────────────────────────
-
-  async submitInference(
-    prompt: string,
-    modelId: string = 'groq:llama-3.3-70b-versatile',
-    options?: { insurance?: boolean }
-  ): Promise<InferenceResult> {
-    // For the full end-to-end flow, we'd need to:
-    // 1. Encrypt the prompt with AES-256-GCM
-    // 2. Upload encrypted blob to IPFS
-    // 3. Split key, CoFHE encrypt halves
-    // 4. Call PromptKeyStore.storeKey() on-chain
-    // 5. Submit to ICL with payment_mode=credits
-    // 6. Poll status and decrypt output
-    //
-    // This requires browser/node CoFHE bridge, IPFS upload, and on-chain
-    // transaction signing. For the initial SDK release, we'll provide
-    // the simplified flow that accepts pre-encrypted payloads.
-    //
-    // Full implementation will be added in a future release.
-    throw new Error(
-      'Full end-to-end inference with CoFHE encryption is not yet implemented. ' +
-        'Use submitEncryptedInference() with a pre-encrypted payload instead.'
-    )
-  }
 
   async submitEncryptedInference(
     payload: {

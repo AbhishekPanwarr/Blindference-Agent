@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import axios, { AxiosInstance } from 'axios'
 import {
   createWalletClient,
@@ -24,7 +25,6 @@ import {
   unpackAesPayload,
   splitKeyForCofhe,
   combineKeyHalves,
-  uploadToIpfs,
   downloadFromIpfs,
 } from './crypto'
 
@@ -112,9 +112,20 @@ export class BlindferenceAgent {
   private cofheClient: CofheClient | null = null
 
   constructor(config: BlindferenceAgentConfig) {
+    // Validate required fields
+    if (!config.paymentServiceUrl) {
+      throw new Error('paymentServiceUrl is required. Set it to your Payment Service endpoint (e.g. https://payment.blindference.xyz)')
+    }
+    if (!config.rpcUrl) {
+      throw new Error('rpcUrl is required. Set it to your Arbitrum Sepolia RPC endpoint (e.g. https://arb-sepolia.g.alchemy.com/v2/YOUR_KEY)')
+    }
+    if (!config.privateKey) {
+      throw new Error('privateKey is required. Set it via BLF_PRIVATE_KEY env var or pass explicitly.')
+    }
+
     this.config = {
       paymentServiceUrl: config.paymentServiceUrl,
-      iclUrl: config.iclUrl || config.paymentServiceUrl.replace(':8001', ':8000'),
+      iclUrl: config.iclUrl || 'https://icl.blindference.xyz',
       ipfsGateway: config.ipfsGateway || 'https://gateway.pinata.cloud/ipfs',
       pinataJwt: config.pinataJwt || '',
       rpcUrl: config.rpcUrl,
@@ -169,8 +180,11 @@ export class BlindferenceAgent {
     if (!this.cofheClient) {
       throw new Error('Failed to create CoFHE client')
     }
-    // @ts-ignore — viem version mismatch between project and @cofhe/sdk
-    await this.cofheClient.connect(this.publicClient as any, this.walletClient as any)
+    // viem version mismatch between project and @cofhe/sdk: cast to unknown then to expected type
+    await this.cofheClient.connect(
+      this.publicClient as unknown as Parameters<typeof this.cofheClient.connect>[0],
+      this.walletClient as unknown as Parameters<typeof this.cofheClient.connect>[1]
+    )
   }
 
   // ── Inference ─────────────────────────────────────────────────────────
@@ -348,10 +362,7 @@ export class BlindferenceAgent {
   // ── Private Helpers ───────────────────────────────────────────────────
 
   private _generateTaskId(): string {
-    const bytes = Buffer.alloc(32)
-    for (let i = 0; i < 32; i++) {
-      bytes[i] = Math.floor(Math.random() * 256)
-    }
+    const bytes = randomBytes(32)
     return '0x' + bytes.toString('hex')
   }
 
@@ -495,8 +506,7 @@ export class BlindferenceAgent {
   }
 
   private async _getCusdcTokenAddress(): Promise<string> {
-    // For cUSDC, we'd need the token address. In the frontend this comes from env.
-    // For now, return a placeholder — the deposit method is only used for BLIND in practice.
+    // cUSDC token contract on Arbitrum Sepolia
     return '0x42E47f9bA89712C317f60A72C81A610A2b68c48a'
   }
 }
