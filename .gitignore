@@ -1,54 +1,31 @@
-# Python
-__pycache__/
-*.py[cod]
-*.so
-*.egg-info/
-*.egg
-build/
+# Dependencies
+node_modules/
+
+# Build output
 dist/
-.eggs/
+*.tsbuildinfo
 
-# Virtual environments
-.venv/
-venv/
-env/
+# Environment
+.env
+.env.local
 
-# IDE / Editor
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 
-# Secrets & environment
-.env
-.env.local
-
-# Testing
-.pytest_cache/
-.coverage
-coverage.xml
-htmlcov/
-
-# Node (for the CoFHE bridge)
-node_modules/
-package-lock.json
-
-# TypeScript SDK build artifacts
-js/dist/
-js/node_modules/
-js/package-lock.json
-*.tsbuildinfo
-
 # OS
 .DS_Store
 Thumbs.db
 
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb_checkpoints
+# Test coverage
+coverage/
 
-# Build artifacts
-*.log
-dist/
-build/
+# npm package
+*.tgz

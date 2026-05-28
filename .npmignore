@@ -1,0 +1,55 @@
+# Source code (published as compiled JS in dist/)
+src/
+
+# Dependencies
+node_modules/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build info
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Docs (keep README.md and LICENSE)
+docs/
+*.md
+!README.md
+!LICENSE
+
+# Examples (keep for reference but don't bloat package)
+examples/
+
+# Scripts that are bundled separately
+scripts/*.mjs
+!scripts/cofhe_bridge.mjs
