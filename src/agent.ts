@@ -440,7 +440,7 @@ export class BlindferenceAgent {
       throw new Error(
         'Connection validation failed. Please check your endpoints and ensure services are running.\n' +
         '  If services are local, ensure:\n' +
-        '    ICL:           cd network/packages/icl && uvicorn main:app --host 127.0.0.1 --port 8000\n' +
+        '    ICL:           cd network/packages/icl && uvicorn main:app --host 0.0.0.0 --port 8000\n' +
         '    Payment Service: cd network/packages/icl && (check payment service port, usually 8001)\n' +
         '\nErrors:\n  - ' + errors.join('\n  - ')
       )
