@@ -5,7 +5,7 @@ and inference to the Node.js/TypeScript SDK without implementing the
 encryption pipeline in Python.
 
 Prerequisites:
-    npm install -g @blindference/agent-sdk
+    npm install -g @abhieren/blindference-agent
     # or use npx directly (no global install needed)
 
 Environment:
@@ -44,7 +44,7 @@ def _find_npx() -> str:
 def _run_ts_cli(*args: str, capture: bool = True, timeout: float = 300.0) -> str:
     """Execute the blindference-agent CLI via npx and return stdout."""
     npx = _find_npx()
-    cmd = [npx, "-y", "@blindference/agent-sdk"] + list(args)
+    cmd = [npx, "-y", "@abhieren/blindference-agent"] + list(args)
 
     logger.info("Running: %s", " ".join(cmd))
     result = subprocess.run(

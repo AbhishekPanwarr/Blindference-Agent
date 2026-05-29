@@ -1,10 +1,14 @@
-# @blindference/agent-sdk
+# @abhieren/blindference-agent
 
 [![Node.js 18+](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
-[![npm](https://img.shields.io/badge/npm-%40blindference%2Fagent--sdk-red.svg)](https://www.npmjs.com/package/@blindference/agent-sdk)
+[![npm](https://img.shields.io/badge/npm-%40abhieren%2Fblindference--agent-red.svg)](https://www.npmjs.com/package/@abhieren/blindference-agent)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Confidential AI inference SDK for Node.js — submit encrypted prompts to a decentralized quorum of verified nodes.**
+
+> 🆕 **First time here?** Read [WHY.md](WHY.md) to understand *why* this package exists, what problems it solves, and how it compares to OpenAI API vs local LLMs.
+>
+> **TL;DR:** Your prompt is encrypted with AES-256-GCM before leaving your machine, split into FHE-encrypted key halves, sent to 3 independent verified nodes that must cryptographically agree on the exact same output, and only then is the result decrypted locally. No plaintext ever touches a server.
 
 Blindference Agent enables developers to build agents that send prompts through end-to-end encryption (AES-256-GCM + Fhenix CoFHE), execute across a leader-verifier quorum for integrity, and receive decrypted results locally. No plaintext leaves your machine.
 
@@ -50,13 +54,13 @@ npm --version    # >= 9.0.0
 ### Global CLI Install
 
 ```bash
-npm install -g @blindference/agent-sdk
+npm install -g @abhieren/blindference-agent
 ```
 
 ### Per-Project Install
 
 ```bash
-npm install @blindference/agent-sdk
+npm install @abhieren/blindference-agent
 ```
 
 ### Environment Setup
@@ -237,7 +241,7 @@ blindference-agent start [options]
 ### Programmatic Usage
 
 ```typescript
-import { BlindferenceAgent } from '@blindference/agent-sdk'
+import { BlindferenceAgent } from '@abhieren/blindference-agent'
 
 const agent = new BlindferenceAgent({
   privateKey: process.env.BLF_PRIVATE_KEY,
@@ -382,7 +386,7 @@ import subprocess
 import json
 
 result = subprocess.run(
-    ["npx", "@blindference/agent-sdk", "infer",
+    ["npx", "@abhieren/blindference-agent", "infer",
      "--prompt", "Hello from Python",
      "--model", "groq:llama-3.3-70b-versatile"],
     capture_output=True,
@@ -538,7 +542,7 @@ BLF_LOG_LEVEL=debug blindference-agent infer --prompt "test"
 
 ## Links
 
-- [NPM Package](https://www.npmjs.com/package/@blindference/agent-sdk)
+- [NPM Package](https://www.npmjs.com/package/@abhieren/blindference-agent)
 - [GitHub](https://github.com/AbhishekPanwarr/Blindference-Agent)
 - [Blindference Network](https://blindference.xyz)
 - [Documentation](https://docs.blindference.xyz)

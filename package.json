@@ -1,12 +1,13 @@
 {
-  "name": "@blindference/agent-sdk",
+  "name": "@abhieren/blindference-agent",
   "version": "0.1.0",
   "description": "Blindference Agent SDK for confidential AI inference — TypeScript/Node.js edition",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "scripts/cofhe_bridge.mjs"
+    "scripts/cofhe_bridge.mjs",
+    "WHY.md"
   ],
   "bin": {
     "blindference-agent": "./dist/cli.js"
@@ -38,6 +39,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/baync180705/blindference-agent.git"
+    "url": "https://github.com/AbhishekPanwarr/Blindference-Agent.git"
   }
 }

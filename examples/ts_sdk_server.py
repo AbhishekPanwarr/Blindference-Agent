@@ -9,7 +9,7 @@ This pattern is ideal for:
   - Load-balanced pools where the TS server runs as a sidecar
 
 Prerequisites:
-    npm install -g @blindference/agent-sdk
+    npm install -g @abhieren/blindference-agent
     # or reference the local js/ directory directly
 
 Environment:
@@ -82,7 +82,7 @@ class BlindferenceServer:
             cmd = ["node", script, "start", "--port", str(self.port)]
         else:
             cmd = [
-                "npx", "-y", "@blindference/agent-sdk",
+                "npx", "-y", "@abhieren/blindference-agent",
                 "start",
                 "--port", str(self.port),
                 "--payment-service", self.payment_service_url,

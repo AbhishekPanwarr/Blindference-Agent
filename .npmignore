@@ -41,10 +41,11 @@ coverage/
 # CI/CD
 .github/
 
-# Docs (keep README.md and LICENSE)
+# Docs (keep README.md, WHY.md, and LICENSE)
 docs/
 *.md
 !README.md
+!WHY.md
 !LICENSE
 
 # Examples (keep for reference but don't bloat package)
