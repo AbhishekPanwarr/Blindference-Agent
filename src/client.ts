@@ -72,10 +72,15 @@ export class InferenceClient {
       throw new Error('privateKey is required')
     }
 
+    // Normalize private key — ensure 0x prefix for viem
+    const rawKey = config.privateKey
+    const normalizedKey = rawKey.startsWith('0x') ? rawKey : `0x${rawKey}`
+
     this.config = {
       chainId: 421614,
       pinataJwt: '',
       ...config,
+      privateKey: normalizedKey,
     }
 
     this.iclClient = axios.create({
@@ -88,7 +93,7 @@ export class InferenceClient {
       headers: { 'Content-Type': 'application/json' },
     })
 
-    const account = privateKeyToAccount(config.privateKey as Hex)
+    const account = privateKeyToAccount(this.config.privateKey as Hex)
     const chain: Chain = arbitrumSepolia
 
     this.walletClient = createWalletClient({

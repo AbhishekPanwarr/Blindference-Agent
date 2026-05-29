@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// Must be first: install localStorage shim before any module that touches
+// zustand persist (e.g. @cofhe/sdk permits store).
+import './shim'
+
 import { config as dotenvConfig } from 'dotenv'
 import { Command } from 'commander'
 import { BlindferenceAgent } from './agent'
@@ -49,23 +53,25 @@ program
   .description('Start the local pipeline server')
   .option('-p, --port <port>', 'Server port', '4000')
   .option('--payment-service <url>', 'Payment Service URL (or set BLF_PAYMENT_URL)')
-  .option('--icl <url>', 'ICL URL (defaults to https://icl.blindference.xyz)')
+  .option('--icl <url>', 'ICL URL (or set BLF_ICL_URL)')
   .option('--ipfs-gateway <url>', 'IPFS download gateway', 'https://gateway.pinata.cloud/ipfs')
   .option('--rpc-url <url>', 'Arbitrum Sepolia RPC URL (or set BLF_RPC_URL)', 'https://sepolia-rollup.arbitrum.io/rpc')
   .option('--pinata-jwt <jwt>', 'Pinata JWT for direct IPFS uploads')
-  .option('--prompt-key-store <address>', 'PromptKeyStore contract address')
+  .option('--prompt-key-store <address>', 'PromptKeyStore contract address (or set BLF_PROMPT_KEY_STORE_ADDRESS)')
   .action(async (options) => {
     const privateKey = requirePrivateKey()
     const paymentUrl = requirePaymentUrl(options)
     const rpcUrl = options.rpcUrl || process.env.BLF_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc'
+    const promptKeyStore = options.promptKeyStore || process.env.BLF_PROMPT_KEY_STORE_ADDRESS
 
     const port = parseInt(options.port, 10)
-    const iclUrl = options.icl || 'https://icl.blindference.xyz'
+    const iclUrl = options.icl || process.env.BLF_ICL_URL || 'https://icl.blindference.xyz'
 
     console.log(`Starting Blindference Agent Server on port ${port}...`)
     console.log(`  Payment Service: ${paymentUrl}`)
     console.log(`  ICL: ${iclUrl}`)
     console.log(`  RPC: ${rpcUrl}`)
+    console.log(`  PromptKeyStore: ${promptKeyStore || 'default'}`)
     console.log(`  Chain: Arbitrum Sepolia (421614)`)
 
     await startServer({
@@ -76,7 +82,7 @@ program
       rpcUrl,
       privateKey,
       pinataJwt: options.pinataJwt,
-      promptKeyStoreAddress: options.promptKeyStore,
+      promptKeyStoreAddress: promptKeyStore,
     })
   })
 
@@ -88,28 +94,37 @@ program
   .option('--currency <currency>', 'Payment currency', 'cUSDC')
   .option('--insurance', 'Enable insurance', false)
   .option('--payment-service <url>', 'Payment Service URL (or set BLF_PAYMENT_URL)')
-  .option('--icl <url>', 'ICL URL', 'https://icl.blindference.xyz')
+  .option('--icl <url>', 'ICL URL (or set BLF_ICL_URL)')
   .option('--ipfs-gateway <url>', 'IPFS download gateway', 'https://gateway.pinata.cloud/ipfs')
   .option('--rpc-url <url>', 'Arbitrum Sepolia RPC URL (or set BLF_RPC_URL)', 'https://sepolia-rollup.arbitrum.io/rpc')
-  .option('--prompt-key-store <address>', 'PromptKeyStore contract address')
+  .option('--prompt-key-store <address>', 'PromptKeyStore contract address (or set BLF_PROMPT_KEY_STORE_ADDRESS)')
   .action(async (options) => {
     const privateKey = requirePrivateKey()
     const paymentUrl = requirePaymentUrl(options)
     const rpcUrl = options.rpcUrl || process.env.BLF_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc'
+    const iclUrl = options.icl || process.env.BLF_ICL_URL || 'https://icl.blindference.xyz'
+    const promptKeyStore = options.promptKeyStore || process.env.BLF_PROMPT_KEY_STORE_ADDRESS
+
+    console.log('Configuration:')
+    console.log(`  ICL:             ${iclUrl}`)
+    console.log(`  Payment Service: ${paymentUrl}`)
+    console.log(`  RPC:             ${rpcUrl}`)
+    console.log(`  PromptKeyStore:  ${promptKeyStore || 'default'}`)
+    console.log(`  Chain:           Arbitrum Sepolia (421614)`)
+    console.log('')
 
     const agent = new BlindferenceAgent({
       privateKey,
       paymentServiceUrl: paymentUrl,
-      iclUrl: options.icl,
+      iclUrl,
       ipfsGateway: options.ipfsGateway,
       rpcUrl,
-      promptKeyStoreAddress: options.promptKeyStore,
+      promptKeyStoreAddress: promptKeyStore,
     })
 
     try {
       console.log('Initializing CoFHE client...')
       await agent.initCofhe()
-      console.log('Submitting inference...')
 
       const result = await agent.infer({
         prompt: options.prompt,
@@ -131,7 +146,15 @@ program
         console.log(`   Task ID: ${result.taskId}`)
       }
     } catch (err: any) {
-      console.error('Error:', err.message || err)
+      if (err.response?.data?.detail) {
+        console.error('Error:', err.response.data.detail)
+        if (err.response.data.detail.includes('Insufficient credits')) {
+          console.error('\nTo purchase credits, run:')
+          console.error('  blindference-agent buy-package --id starter')
+        }
+      } else {
+        console.error('Error:', err.message || err)
+      }
       process.exit(1)
     }
   })
